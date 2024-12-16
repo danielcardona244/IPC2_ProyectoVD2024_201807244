@@ -38,5 +38,9 @@ class IPCArtStudio:
 
         if username == "AdminIPC" and password == "ARTIPC2":
             self.on_login_success("Admin")
+        elif username.startswith("Artista") and password == "ARTISTA123":
+            self.on_login_success("Artista")
+        elif username.startswith("Solicitante") and password == "SOLICITANTE123":
+            self.on_login_success("Solicitante")
         else:
             print("Usuario o contraseña incorrectos")
