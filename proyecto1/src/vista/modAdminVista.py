@@ -1,4 +1,41 @@
 import tkinter as tk
+from tkinter import filedialog, messagebox
+import xml.etree.ElementTree as ET
+from estructuras.lista_doble import ListaDoble
+from clases.solicitante import Solicitante
+
+lista_solicitantes = ListaDoble()
+
+def cargar_solicitantes():
+    file_path = filedialog.askopenfilename(title="Seleccionar archivo XML", filetypes=[("Archivos XML", "*.xml")])
+    if not file_path:
+        return
+
+    try:
+        tree = ET.parse(file_path)
+        root = tree.getroot()
+
+        for solicitante in root.findall("solicitante"):
+            id = solicitante.get("id")
+            pwd = solicitante.get("pwd")
+            nombre = solicitante.find("NombreCompleto").text
+            correo = solicitante.find("CorreoElectronico").text
+            telefono = solicitante.find("NumeroTelefono").text
+            direccion = solicitante.find("Direccion").text
+
+            if lista_solicitantes.buscar(id):
+                print(f"ID duplicado: {id}")
+                continue
+
+            nuevo_solicitante = Solicitante(id, pwd, nombre, correo, telefono, direccion)
+            lista_solicitantes.insertar(nuevo_solicitante)
+
+        messagebox.showinfo("Éxito", "Solicitantes cargados correctamente.")
+        print("Lista actualizada:")
+        lista_solicitantes.imprimirListaHaciaAdelante()
+
+    except Exception as e:
+        messagebox.showerror("Error", f"Error al cargar XML: {e}")
 
 def crear_vista_administrador(root, on_logout):
     """
@@ -14,7 +51,7 @@ def crear_vista_administrador(root, on_logout):
     marco_reporte = tk.Frame(root)
 
     # Crear los botones y etiquetas
-    boton_cargar_solicitantes = tk.Button(marco_solicitantes, text="Cargar Solicitantes")
+    boton_cargar_solicitantes = tk.Button(marco_solicitantes, text="Cargar Solicitantes", command=cargar_solicitantes)  # Añadir command
     boton_cargar_artistas = tk.Button(marco_artistas, text="Cargar Artistas")
     boton_ver_solicitantes = tk.Button(marco_solicitantes, text="Ver Solicitantes")
     boton_ver_artistas = tk.Button(marco_artistas, text="Ver Artistas")
