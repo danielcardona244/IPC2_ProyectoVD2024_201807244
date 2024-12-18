@@ -7,6 +7,9 @@ from clases.solicitante import Solicitante
 lista_solicitantes = ListaDoble()
 
 def cargar_solicitantes():
+    """
+    Carga los solicitantes desde un archivo XML.
+    """
     file_path = filedialog.askopenfilename(title="Seleccionar archivo XML", filetypes=[("Archivos XML", "*.xml")])
     if not file_path:
         return
@@ -23,6 +26,7 @@ def cargar_solicitantes():
             telefono = solicitante.find("NumeroTelefono").text
             direccion = solicitante.find("Direccion").text
 
+            # Validar que no exista el ID
             if lista_solicitantes.buscar(id):
                 print(f"ID duplicado: {id}")
                 continue
@@ -36,6 +40,15 @@ def cargar_solicitantes():
 
     except Exception as e:
         messagebox.showerror("Error", f"Error al cargar XML: {e}")
+
+def ver_solicitantes():
+    """
+    Genera y abre un reporte gráfico de la lista de solicitantes.
+    """
+    if len(lista_solicitantes) == 0:
+        messagebox.showinfo("Información", "La lista de solicitantes está vacía.")
+    else:
+        lista_solicitantes.graficar()
 
 def crear_vista_administrador(root, on_logout):
     """
@@ -51,9 +64,9 @@ def crear_vista_administrador(root, on_logout):
     marco_reporte = tk.Frame(root)
 
     # Crear los botones y etiquetas
-    boton_cargar_solicitantes = tk.Button(marco_solicitantes, text="Cargar Solicitantes", command=cargar_solicitantes)  # Añadir command
+    boton_cargar_solicitantes = tk.Button(marco_solicitantes, text="Cargar Solicitantes", command=cargar_solicitantes)
+    boton_ver_solicitantes = tk.Button(marco_solicitantes, text="Ver Solicitantes", command=ver_solicitantes)
     boton_cargar_artistas = tk.Button(marco_artistas, text="Cargar Artistas")
-    boton_ver_solicitantes = tk.Button(marco_solicitantes, text="Ver Solicitantes")
     boton_ver_artistas = tk.Button(marco_artistas, text="Ver Artistas")
     etiqueta_reporte = tk.Label(marco_reporte, text="Reporte")
     boton_cerrar_sesion = tk.Button(root, text="Cerrar Sesión", command=on_logout)
@@ -65,7 +78,7 @@ def crear_vista_administrador(root, on_logout):
     boton_cerrar_sesion.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
 
     boton_cargar_solicitantes.grid(row=0, column=0, pady=5)
-    boton_cargar_artistas.grid(row=0, column=0, pady=5)
     boton_ver_solicitantes.grid(row=1, column=0, pady=5)
+    boton_cargar_artistas.grid(row=0, column=0, pady=5)
     boton_ver_artistas.grid(row=1, column=0, pady=5)
     etiqueta_reporte.grid(row=0, column=0, pady=5)

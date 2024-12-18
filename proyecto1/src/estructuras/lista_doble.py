@@ -14,6 +14,12 @@ class ListaDoble:
         self.ultimo = None
         self.tamanio = 0
 
+    def __len__(self):
+        """
+        Retorna el tamaño actual de la lista.
+        """
+        return self.tamanio
+
     def insertar(self, valor):
         """
         Inserta un nuevo nodo al final de la lista.
