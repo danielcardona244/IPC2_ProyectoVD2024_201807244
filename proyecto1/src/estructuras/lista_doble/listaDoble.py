@@ -1,11 +1,5 @@
 import os
-
-# Definición de la clase Nodo
-class Nodo:
-    def __init__(self, valor):
-        self.valor = valor  # Almacena el objeto Solicitante
-        self.siguiente = None
-        self.anterior = None
+from estructuras.lista_doble.nodo import Nodo  # Importamos la clase Nodo desde nodo.py
 
 # Definición de la clase ListaDoble
 class ListaDoble:
@@ -24,7 +18,7 @@ class ListaDoble:
         """
         Inserta un nuevo nodo al final de la lista.
         """
-        nuevo = Nodo(valor)
+        nuevo = Nodo(valor)  # Creamos un nodo usando la clase Nodo
         if self.primero is None and self.ultimo is None:
             self.primero = nuevo
             self.ultimo = nuevo
@@ -62,10 +56,12 @@ class ListaDoble:
             print("La lista está vacía. No se puede generar la gráfica.")
             return
 
+        # Inicia el código DOT
         codigo_dot = 'digraph G {\n'
         codigo_dot += '    rankdir=LR;\n'
         codigo_dot += '    node [shape=record];\n\n'
 
+        # Genera los nodos y las conexiones
         actual = self.primero
         contador = 0
         while actual:
@@ -77,11 +73,13 @@ class ListaDoble:
 
         codigo_dot += "}"
 
+        # Crea directorios si no existen
         if not os.path.exists("Reportes"):
             os.makedirs("Reportes")
         if not os.path.exists("reportesdot"):
             os.makedirs("reportesdot")
 
+        # Genera el archivo .dot y la imagen SVG
         ruta_dot = "reportesdot/ListaSolicitantes.dot"
         with open(ruta_dot, "w") as archivo:
             archivo.write(codigo_dot)
