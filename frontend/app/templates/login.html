@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+    <h1>Iniciar Sesión</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="ID">ID de Usuario:</label>
+        <input type="text" name="ID" id="ID" required>
+        <br>
+        <label for="Pwd">Contraseña:</label>
+        <input type="password" name="Pwd" id="Pwd" required>
+        <br>
+        <button type="submit">Ingresar</button>
+    </form>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+</body>
+</html>
