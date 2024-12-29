@@ -4,7 +4,7 @@
     {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IPCArt-Studio - Administrador</title>
+    <title>Ver XML</title>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <body>
@@ -13,18 +13,23 @@
             <h2>IPCArt-Studio</h2>
             <nav>
                 <ul>
-                    <li><a href="{% url 'cargar_usuarios' %}">Carga Masiva</a></li>
-
-                    <li><a href="{% url 'ver_usuarios' %}">Ver Usuarios</a></li>
+                    <li><a href="{% url 'admin_dashboard' %}">Inicio</a></li>
+                    <li><a href="{% url 'ver_usuarios' %}">Usuarios</a></li>
                     <li><a href="{% url 'ver_xml' %}">Ver XML</a></li>
-                    <li><a href="{% url 'ver_estadisticas' %}">Ver Estadísticas</a></li>
+                    <li><a href="{% url 'ver_estadisticas' %}">Estadísticas</a></li>
                     <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
                 </ul>
             </nav>
         </aside>
         <main class="content">
-            <h1>Bienvenido al Dashboard</h1>
-            <p>Aquí puedes administrar los usuarios y ver estadísticas.</p>
+            <h1>Contenido del XML</h1>
+            {% if error %}
+                <p style="color: red;">{{ error }}</p>
+            {% elif xml %}
+                <pre>{{ xml|safe }}</pre>
+            {% else %}
+                <p>No hay contenido para mostrar.</p>
+            {% endif %}
         </main>
     </div>
 </body>

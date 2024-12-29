@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>IPCArt-Studio</h2>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'admin_dashboard' %}">Inicio</a></li>
+                    <li><a href="{% url 'ver_usuarios' %}">Usuarios</a></li>
+                    <li><a href="{% url 'ver_xml' %}">Ver XML</a></li>
+                    <li><a href="{% url 'ver_estadisticas' %}">Estadísticas</a></li>
+                    <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="content">
+            <h1>Estadísticas</h1>
+            {% if error %}
+                <p style="color: red;">{{ error }}</p>
+            {% else %}
+                <p><strong>Total de Usuarios:</strong> {{ total_usuarios }}</p>
+                <h2>Distribución por Perfil</h2>
+                <ul>
+                    {% for perfil, count in estadisticas_perfil.items %}
+                        <li>{{ perfil }}: {{ count }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>

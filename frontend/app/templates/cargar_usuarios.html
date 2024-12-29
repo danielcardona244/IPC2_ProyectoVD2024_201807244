@@ -1,17 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
-    <title>Cargar Usuarios</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carga Masiva</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <body>
-    <h1>Cargar Usuarios</h1>
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        <label for="archivo">Archivo XML:</label>
-        <input type="file" name="archivo" id="archivo" accept=".xml" required>
-        <br>
-        <button type="submit">Cargar</button>
-    </form>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>IPCArt-Studio</h2>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'admin_dashboard' %}">Inicio</a></li>
+                    <li><a href="{% url 'ver_usuarios' %}">Usuarios</a></li>
+                    <li><a href="{% url 'ver_xml' %}">Ver XML</a></li>
+                    <li><a href="{% url 'ver_estadisticas' %}">Estadísticas</a></li>
+                    <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="content">
+            <h1>Carga Masiva</h1>
+            
+            <div>
+                <!-- Botones -->
+                <button onclick="document.getElementById('archivo').click();">Subir archivo</button>
+                <button onclick="verArchivo()">Ver Archivo</button>
+                <button type="submit" form="uploadForm">Cargar Archivo</button>
+            </div>
+
+            <!-- Formulario para cargar archivo -->
+            <form id="uploadForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="file" id="archivo" name="archivo" accept=".xml" style="display: none;" required>
+            </form>
+
+            <!-- Área para mostrar contenido del archivo -->
+            <div id="archivoContenido" style="border: 1px solid #ccc; margin-top: 20px; padding: 10px;">
+                <!-- Aquí se renderizará el contenido del archivo -->
+                <!-- Mensaje dinámico para feedback -->
+                {% if mensaje %}
+                    <p style="color: green;">{{ mensaje }}</p>
+                {% endif %}
+                {% if error %}
+                    <p style="color: red;">{{ error }}</p>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Función para leer y mostrar el contenido del archivo
+        function verArchivo() {
+            const archivoInput = document.getElementById('archivo');
+            const contenidoDiv = document.getElementById('archivoContenido');
+            
+            if (archivoInput.files.length === 0) {
+                contenidoDiv.innerHTML = "<p style='color: red;'>No se ha seleccionado ningún archivo.</p>";
+                return;
+            }
+
+            const archivo = archivoInput.files[0];
+            const lector = new FileReader();
+
+            lector.onload = function(event) {
+                contenidoDiv.textContent = event.target.result;
+            };
+
+            lector.onerror = function() {
+                contenidoDiv.innerHTML = "<p style='color: red;'>Error al leer el archivo.</p>";
+            };
+
+            lector.readAsText(archivo);
+        }
+    </script>
 </body>
 </html>

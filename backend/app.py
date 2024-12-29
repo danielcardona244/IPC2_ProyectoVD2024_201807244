@@ -7,59 +7,12 @@ app = Flask(__name__)
 # Ruta del archivo de usuarios
 ARCHIVO_USUARIOS = "users.xml"
 
+
+
 # Pantalla inicial redirige al login
 @app.route('/')
 def inicio():
     return redirect(url_for('login'))
-
-# Endpoint para cargar usuarios (solo accesible para administrador)
-@app.route('/admin/cargarUsuarios', methods=['POST'])
-def cargar_usuarios():
-    # Validar si las credenciales son del administrador
-    if not request.headers.get('Rol') == 'administrador':
-        return jsonify({"error": "Acceso denegado. Solo el administrador puede cargar usuarios."}), 403
-
-    if 'file' not in request.files:
-        return jsonify({"error": "No se encontró el archivo"}), 400
-
-    archivo = request.files['file']
-    if not archivo.filename.endswith('.xml'):
-        return jsonify({"error": "El archivo debe ser XML"}), 400
-
-    try:
-        # Leer el contenido del archivo XML cargado
-        contenido = archivo.read().decode('utf-8')
-        datos = leer_xml(contenido)
-        usuarios = datos.get("Usuarios", {}).get("Usuario", [])
-
-        # Asegurarnos de que los usuarios estén en formato lista
-        if not isinstance(usuarios, list):
-            usuarios = [usuarios]
-
-        # Validar y procesar usuarios
-        claves_requeridas = ["ID", "Pwd", "Nombre", "Correo", "Telefono", "Direccion", "Perfil"]
-        usuarios_validos = []
-        for usuario in usuarios:
-            errores = validar_estructura_xml(usuario, claves_requeridas)
-            if errores:
-                return jsonify({"error": f"Errores en los datos del usuario: {errores}"}), 400
-            usuarios_validos.append(usuario)
-
-        # Leer usuarios existentes y actualizar con los nuevos
-        if os.path.exists(ARCHIVO_USUARIOS):
-            with open(ARCHIVO_USUARIOS, "r", encoding="utf-8") as f:
-                datos_existentes = leer_xml(f.read())
-            usuarios_existentes = datos_existentes.get("Usuarios", {}).get("Usuario", [])
-            if not isinstance(usuarios_existentes, list):
-                usuarios_existentes = [usuarios_existentes]
-            usuarios_validos = usuarios_existentes + usuarios_validos
-
-        # Guardar los usuarios actualizados en el archivo XML
-        escribir_xml({"Usuarios": {"Usuario": usuarios_validos}}, ARCHIVO_USUARIOS)
-        return jsonify({"mensaje": "Usuarios cargados exitosamente"}), 200
-
-    except Exception as e:
-        return jsonify({"error": f"Error procesando archivo: {str(e)}"}), 500
 
 
 # Endpoint para inicio de sesión
@@ -76,11 +29,9 @@ def login():
         return jsonify({"error": "ID de usuario y contraseña son obligatorios"}), 400
 
     try:
-        # Validar si las credenciales corresponden al administrador
         if id_usuario == "AdminIPC" and contrasena == "ARTIPC2":
             return jsonify({"mensaje": "Inicio de sesión exitoso como administrador", "rol": "administrador"}), 200
 
-        # Leer los usuarios del archivo XML
         if not os.path.exists(ARCHIVO_USUARIOS):
             return jsonify({"error": "No hay usuarios registrados"}), 404
 
@@ -90,7 +41,6 @@ def login():
         datos_usuarios = leer_xml(contenido)
         usuarios = datos_usuarios.get("Usuarios", {}).get("Usuario", [])
 
-        # Asegurarse de que los usuarios estén en formato lista
         if not isinstance(usuarios, list):
             usuarios = [usuarios]
 
@@ -106,6 +56,86 @@ def login():
 
     except Exception as e:
         return jsonify({"error": f"Error procesando la solicitud: {str(e)}"}), 500
+
+
+# Endpoint para cargar usuarios 
+@app.route('/admin/cargarUsuarios', methods=['POST'])
+def cargar_usuarios():
+
+    if 'file' not in request.files:
+        return jsonify({"error": "No se encontró el archivo"}), 400
+
+    archivo = request.files['file']
+    if not archivo.filename.endswith('.xml'):
+        return jsonify({"error": "El archivo debe ser XML"}), 400
+
+    try:
+        contenido = archivo.read().decode('utf-8')
+        # Aquí se procesará el contenido XML, se valida y se guarda
+        return jsonify({"mensaje": "Usuarios cargados exitosamente"}), 200
+    except Exception as e:
+        return jsonify({"error": f"Error procesando archivo: {str(e)}"}), 500
+
+
+# Endpoint para ver usuarios
+@app.route('/admin/verUsuarios', methods=['GET'])
+def ver_usuarios():
+    if not os.path.exists(ARCHIVO_USUARIOS):
+        return jsonify({"usuarios": []}), 200  # Respuesta vacía si no hay usuarios registrados
+
+    try:
+        with open(ARCHIVO_USUARIOS, "r", encoding="utf-8") as archivo:
+            contenido = archivo.read()
+        datos_usuarios = leer_xml(contenido)
+        usuarios = datos_usuarios.get("Usuarios", {}).get("Usuario", [])
+
+        if not isinstance(usuarios, list):
+            usuarios = [usuarios]
+
+        return jsonify({"usuarios": usuarios}), 200
+    except Exception as e:
+        return jsonify({"error": f"Error al obtener usuarios: {str(e)}"}), 500
+
+
+#endpoint para ver xml 
+@app.route('/admin/verXML', methods=['GET'])
+def ver_xml():
+    if not os.path.exists(ARCHIVO_USUARIOS):
+        return jsonify({"error": "No hay usuarios registrados"}), 404
+
+    try:
+        with open(ARCHIVO_USUARIOS, "r", encoding="utf-8") as archivo:
+            contenido = archivo.read()
+        return jsonify({"xml": contenido}), 200
+    except Exception as e:
+        return jsonify({"error": f"Error al obtener el XML: {str(e)}"}), 500
+
+
+#endpoint para ver estadisticas
+@app.route('/admin/verEstadisticas', methods=['GET'])
+def ver_estadisticas():
+    if not os.path.exists(ARCHIVO_USUARIOS):
+        return jsonify({"error": "No hay usuarios registrados"}), 404
+
+    try:
+        with open(ARCHIVO_USUARIOS, "r", encoding="utf-8") as archivo:
+            contenido = archivo.read()
+        datos_usuarios = leer_xml(contenido)
+        usuarios = datos_usuarios.get("Usuarios", {}).get("Usuario", [])
+
+        if not isinstance(usuarios, list):
+            usuarios = [usuarios]
+
+        # Generar estadísticas
+        total_usuarios = len(usuarios)
+        perfiles = [u["Perfil"] for u in usuarios]
+        estadisticas_perfil = {perfil: perfiles.count(perfil) for perfil in set(perfiles)}
+
+        return jsonify({"total_usuarios": total_usuarios, "estadisticas_perfil": estadisticas_perfil}), 200
+    except Exception as e:
+        return jsonify({"error": f"Error al calcular estadísticas: {str(e)}"}), 500
+
+
 
 
 if __name__ == '__main__':

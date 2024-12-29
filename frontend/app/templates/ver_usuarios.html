@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>IPCArt-Studio</h2>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'admin_dashboard' %}">Inicio</a></li>
+                    <li><a href="{% url 'ver_usuarios' %}">Usuarios</a></li>
+                    <li><a href="{% url 'ver_xml' %}">Ver XML</a></li>
+                    <li><a href="{% url 'ver_estadisticas' %}">Estadísticas</a></li>
+                    <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="content">
+            <h1>Usuarios</h1>
+            {% if error %}
+                <p style="color: red;">{{ error }}</p>
+            {% elif mensaje %}
+                <p>{{ mensaje }}</p>
+            {% else %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Dirección</th>
+                            <th>Perfil</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                            <tr>
+                                <td>{{ usuario.ID }}</td>
+                                <td>{{ usuario.Nombre }}</td>
+                                <td>{{ usuario.Correo }}</td>
+                                <td>{{ usuario.Telefono }}</td>
+                                <td>{{ usuario.Direccion }}</td>
+                                <td>{{ usuario.Perfil }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>

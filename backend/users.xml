@@ -1,21 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Usuarios>
-	<Usuario>
-		<ID>IPC-001</ID>
-		<Pwd>password123</Pwd>
-		<Nombre>Juan Pérez</Nombre>
-		<Correo>juan.perez@example.com</Correo>
-		<Telefono>12345678</Telefono>
-		<Direccion>Calle Falsa 123</Direccion>
-		<Perfil>https://example.com/juan.jpg</Perfil>
-	</Usuario>
-	<Usuario>
-		<ID>IPC-001</ID>
-		<Pwd>password123</Pwd>
-		<Nombre>Juan Pérez</Nombre>
-		<Correo>juan.perez@example.com</Correo>
-		<Telefono>12345678</Telefono>
-		<Direccion>Calle Falsa 123</Direccion>
-		<Perfil>https://example.com/juan.jpg</Perfil>
-	</Usuario>
+    <Usuario>
+        <ID>1</ID>
+        <Pwd>password123</Pwd>
+        <Nombre>Juan Pérez</Nombre>
+        <Correo>juan.perez@example.com</Correo>
+        <Telefono>1234567890</Telefono>
+        <Direccion>Calle Falsa 123</Direccion>
+        <Perfil>Administrador</Perfil>
+    </Usuario>
 </Usuarios>
