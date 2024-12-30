@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for, jsonify
 import os
 import xml.etree.ElementTree as ET
-from utils.xml_utils import leer_xml, escribir_xml, validar_estructura_xml
+from utils.xml_utils import leer_xml, validar_estructura_xml, validar_usuarios_xml, escribir_xml, validar_xml_existente
 import requests
 
 app = Flask(__name__)
@@ -22,8 +22,6 @@ ARCHIVO_USUARIOS = "users.xml"
 @app.route('/')
 def inicio():
     return redirect(url_for('login'))
-
-
 # Endpoint para inicio de sesión
 @app.route('/login', methods=['POST'])
 def login():
@@ -66,11 +64,9 @@ def login():
     except Exception as e:
         return jsonify({"error": f"Error procesando la solicitud: {str(e)}"}), 500
 
-
-# Endpoint para cargar usuarios 
+# Endpoint para cargar usuarios
 @app.route('/admin/cargarUsuarios', methods=['POST'])
 def cargar_usuarios():
-
     if 'file' not in request.files:
         return jsonify({"error": "No se encontró el archivo"}), 400
 
@@ -80,10 +76,96 @@ def cargar_usuarios():
 
     try:
         contenido = archivo.read().decode('utf-8')
-        # Aquí se procesará el contenido XML, se valida y se guarda
+        usuarios, error = leer_usuarios_desde_xml(contenido)
+
+        if error:
+            return jsonify({"error": error}), 400
+
+        # Validaciones de los usuarios
+        errores = []
+        usuarios_validos = []
+        for usuario in usuarios:
+            if not usuario['id'] or not usuario['id'].startswith('IPC-'):
+                errores.append(f"ID inválido: {usuario['id']}")
+                continue
+            if not usuario['telefono'].isdigit() or len(usuario['telefono']) != 8:
+                errores.append(f"Teléfono inválido: {usuario['telefono']}")
+                continue
+            if '@' not in usuario['correo']:
+                errores.append(f"Correo inválido: {usuario['correo']}")
+                continue
+
+            # Usuario válido
+            usuarios_validos.append(usuario)
+
+        # Guardar usuarios válidos en el archivo users.xml
+        if usuarios_validos:
+            # Validar si existe un archivo válido
+            if validar_xml_existente(ARCHIVO_USUARIOS):
+                with open(ARCHIVO_USUARIOS, "r", encoding="utf-8") as archivo:
+                    contenido_actual = archivo.read()
+                datos_actuales = leer_xml(contenido_actual).get("Usuarios", {}).get("Usuario", [])
+                if not isinstance(datos_actuales, list):
+                    datos_actuales = [datos_actuales]
+            else:
+                datos_actuales = []
+
+            # Convertir usuarios válidos al formato esperado y agregar
+            for usuario in usuarios_validos:
+                datos_actuales.append({
+                    "ID": usuario["id"],
+                    "Pwd": usuario["password"],
+                    "Nombre": usuario["nombre"],
+                    "Correo": usuario["correo"],
+                    "Telefono": usuario["telefono"],
+                    "Direccion": usuario["direccion"],
+                    "Perfil": usuario["perfil"],
+                })
+
+            nuevos_datos = {"Usuarios": {"Usuario": datos_actuales}}
+            escribir_xml(nuevos_datos, ARCHIVO_USUARIOS)
+
+        if errores:
+            return jsonify({
+                "mensaje": "Usuarios procesados con algunos errores.",
+                "errores": errores
+            }), 400
+
         return jsonify({"mensaje": "Usuarios cargados exitosamente"}), 200
     except Exception as e:
         return jsonify({"error": f"Error procesando archivo: {str(e)}"}), 500
+
+
+def leer_usuarios_desde_xml(contenido):
+    """
+    Lee y valida usuarios desde el contenido XML proporcionado.
+    """
+    try:
+        datos = leer_xml(contenido)
+        solicitantes = datos.get("solicitantes", {}).get("solicitante", [])
+
+        if not isinstance(solicitantes, list):
+            solicitantes = [solicitantes]  # Convertir a lista si es un solo solicitante
+
+        usuarios = []
+        for solicitante in solicitantes:
+            usuario = {
+                "id": solicitante.get("@id"),
+                "password": solicitante.get("@pwd"),
+                "nombre": solicitante.get("NombreCompleto"),
+                "correo": solicitante.get("CorreoElectronico"),
+                "telefono": solicitante.get("NumeroTelefono"),
+                "direccion": solicitante.get("Direccion"),
+                "perfil": solicitante.get("perfil"),
+            }
+            usuarios.append(usuario)
+
+        return usuarios, None
+    except ValueError as ve:
+        return None, str(ve)
+    except Exception as e:
+        return None, f"Error procesando el XML: {str(e)}"
+
 
 
 # Endpoint para ver usuarios
@@ -104,7 +186,6 @@ def ver_usuarios():
         return jsonify({"usuarios": usuarios}), 200
     except Exception as e:
         return jsonify({"error": f"Error al obtener usuarios: {str(e)}"}), 500
-
 
 #endpoint para ver xml 
 @app.route('/admin/verXML', methods=['GET'])

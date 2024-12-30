@@ -64,15 +64,38 @@ def cargar_usuarios(request):
         files = {'file': archivo}
 
         try:
+            # Enviar archivo al backend
             response = requests.post(f'{FLASK_BACKEND_URL}/admin/cargarUsuarios', files=files)
+            respuesta = response.json()
+
+            # Estado 200: Todo se procesó correctamente
             if response.status_code == 200:
-                mensaje = response.json().get('mensaje', 'Archivo cargado exitosamente.')
-                return render(request, 'cargar_usuarios.html', {'mensaje': mensaje})
+                mensaje = respuesta.get('mensaje', 'Archivo cargado exitosamente.')
+                errores = respuesta.get('errores', [])  # Puede haber errores parciales
+                return render(request, 'cargar_usuarios.html', {
+                    'mensaje': mensaje,
+                    'errores': errores
+                })
+
+            # Estado 400: Algunos errores ocurrieron
+            elif response.status_code == 400:
+                mensaje = respuesta.get('mensaje', 'Error al cargar el archivo.')
+                errores = respuesta.get('errores', [])
+                return render(request, 'cargar_usuarios.html', {
+                    'mensaje': mensaje,
+                    'errores': errores
+                })
+
+            # Otros estados: Error inesperado
             else:
-                error = response.json().get('error', 'Error al cargar el archivo.')
+                error = respuesta.get('error', 'Error al cargar el archivo.')
                 return render(request, 'cargar_usuarios.html', {'error': error})
+
         except Exception as e:
+            # Manejo de errores de conexión u otros problemas
             return render(request, 'cargar_usuarios.html', {'error': f"Error al comunicarse con el backend: {str(e)}"})
+
+    # Si no es POST o no hay archivo
     return render(request, 'cargar_usuarios.html')
 
 

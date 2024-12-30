@@ -128,3 +128,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
+ARCHIVO_USUARIOS = os.path.join(os.getcwd(), "users.xml")

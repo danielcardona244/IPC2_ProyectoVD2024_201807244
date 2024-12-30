@@ -13,68 +13,87 @@
             <h2>IPCArt-Studio</h2>
             <nav>
                 <ul>
-                    <li><a href="{% url 'admin_dashboard' %}">Inicio</a></li>
-                    <li><a href="{% url 'ver_usuarios' %}">Usuarios</a></li>
-                    <li><a href="{% url 'ver_xml' %}">Ver XML</a></li>
-                    <li><a href="{% url 'ver_estadisticas' %}">Estadísticas</a></li>
-                    <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                    <li><a href="{% url 'admin_dashboard' %}"> Inicio </a></li>
+                    <li><a href="{% url 'ver_usuarios' %}"> Ver usuarios</a></li>
+                    <li><a href="{% url 'ver_xml' %}"> Ver XML</a></li>
+                    <li><a href="{% url 'ver_estadisticas' %}"> Ver estadísticas</a></li>
+                    <li><a href="{% url 'logout' %}"> Cerrar Sesión</a></li>
                 </ul>
             </nav>
         </aside>
+
+        <!-- Contenido principal -->
         <main class="content">
             <h1>Carga Masiva</h1>
             
-            <div>
-                <!-- Botones -->
-                <button onclick="document.getElementById('archivo').click();">Subir archivo</button>
-                <button onclick="verArchivo()">Ver Archivo</button>
-                <button type="submit" form="uploadForm">Cargar Archivo</button>
+            <!-- Botones para acciones -->
+            <div class="actions">
+                <button id="btnSubir" onclick="document.getElementById('archivo').click()">Subir archivo</button>
+                <button id="btnVerArchivo">Ver Archivo</button>
+                <button id="btnCargarArchivo" type="submit">Cargar Archivo</button>
             </div>
 
-            <!-- Formulario para cargar archivo -->
-            <form id="uploadForm" method="post" enctype="multipart/form-data">
+            <!-- Formulario para subir archivo -->
+            <form id="uploadForm" method="post" enctype="multipart/form-data" style="display: none;">
                 {% csrf_token %}
-                <input type="file" id="archivo" name="archivo" accept=".xml" style="display: none;" required>
+                <input type="file" id="archivo" name="archivo" accept=".xml" required>
             </form>
 
-            <!-- Área para mostrar contenido del archivo -->
-            <div id="archivoContenido" style="border: 1px solid #ccc; margin-top: 20px; padding: 10px;">
-                <!-- Aquí se renderizará el contenido del archivo -->
-                <!-- Mensaje dinámico para feedback -->
-                {% if mensaje %}
-                    <p style="color: green;">{{ mensaje }}</p>
-                {% endif %}
-                {% if error %}
-                    <p style="color: red;">{{ error }}</p>
-                {% endif %}
+            <!-- Área para mostrar contenido del XML -->
+            <div class="xml-preview">
+                <textarea id="xmlContent" readonly placeholder="Aquí se mostrará el contenido del XML..."></textarea>
             </div>
+
+            <!-- Mensajes de éxito o errores -->
+            {% if mensaje %}
+                <div class="success">
+                    <p>{{ mensaje }}</p>
+                </div>
+            {% endif %}
+
+            {% if errores %}
+                <div class="errors">
+                    <h2>Errores encontrados:</h2>
+                    <ul>
+                        {% for error in errores %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            {% if error %}
+                <div class="errors">
+                    <p>{{ error }}</p>
+                </div>
+            {% endif %}
         </main>
     </div>
 
     <script>
-        // Función para leer y mostrar el contenido del archivo
-        function verArchivo() {
-            const archivoInput = document.getElementById('archivo');
-            const contenidoDiv = document.getElementById('archivoContenido');
-            
-            if (archivoInput.files.length === 0) {
-                contenidoDiv.innerHTML = "<p style='color: red;'>No se ha seleccionado ningún archivo.</p>";
-                return;
+        // Cargar el archivo y mostrar el contenido en el área de texto
+        document.getElementById('btnVerArchivo').addEventListener('click', function () {
+            const fileInput = document.getElementById('archivo');
+            if (fileInput.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('xmlContent').value = e.target.result;
+                };
+                reader.readAsText(fileInput.files[0]);
+            } else {
+                alert('Primero seleccione un archivo.');
             }
+        });
 
-            const archivo = archivoInput.files[0];
-            const lector = new FileReader();
-
-            lector.onload = function(event) {
-                contenidoDiv.textContent = event.target.result;
-            };
-
-            lector.onerror = function() {
-                contenidoDiv.innerHTML = "<p style='color: red;'>Error al leer el archivo.</p>";
-            };
-
-            lector.readAsText(archivo);
-        }
+        // Simular envío del formulario al hacer clic en Cargar Archivo
+        document.getElementById('btnCargarArchivo').addEventListener('click', function () {
+            const fileInput = document.getElementById('archivo');
+            if (fileInput.files.length > 0) {
+                document.getElementById('uploadForm').submit();
+            } else {
+                alert('Primero seleccione un archivo.');
+            }
+        });
     </script>
 </body>
 </html>
