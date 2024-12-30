@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargar Imagen</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>IPCArt-Studio</h2>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'usuario_dashboard' %}">Inicio</a></li>
+                    <li><a href="{% url 'galeria' %}">Galería</a></li>
+                    <li><a href="{% url 'subir_imagen' %}">Cargar Imagen</a></li>
+                    <li><a href="#">Editor de imágenes</a></li>
+                    <li><a href="#">Ayuda</a></li>
+                    <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main content -->
+        <main class="content">
+            <h1>Cargar Imagen</h1>
+            
+            <!-- Formulario para cargar archivo -->
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="file" name="archivo" accept=".xml">
+                <button type="submit">Cargar Archivo</button>
+            </form>
+
+            <!-- Mensaje de éxito o error -->
+            {% if mensaje %}
+                <p style="color: green;">{{ mensaje }}</p>
+            {% endif %}
+            {% if error %}
+                <p style="color: red;">{{ error }}</p>
+            {% endif %}
+
+            <!-- Contenedor para XML y resultado -->
+            <div style="display: flex; justify-content: space-between;">
+                <!-- XML cargado -->
+                <div style="width: 45%;">
+                    <h3>XML:</h3>
+                    <textarea readonly style="width: 100%; height: 200px;">{{ xml|default:"No se ha cargado un archivo." }}</textarea>
+                </div>
+
+                <!-- Imagen resultante -->
+                <div style="width: 45%; text-align: center;">
+                    <h3>Imagen resultante:</h3>
+                    {% if imagen %}
+                        <img src="{{ imagen }}" alt="Imagen generada" style="max-width: 100%; height: auto; border: 1px solid #ddd;">
+                    {% else %}
+                        <p>No se ha generado ninguna imagen.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

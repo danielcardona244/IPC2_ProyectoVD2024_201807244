@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Imágenes</title>
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #333;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .sidebar h2 {
+            color: white;
+            text-align: center;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar ul li {
+            margin: 15px 0;
+        }
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+        }
+        .sidebar ul li a:hover {
+            text-decoration: underline;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(25, 20px);
+            grid-template-rows: repeat(25, 20px);
+            gap: 1px;
+        }
+        .cell {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #ccc;
+        }
+        .toolbar {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>IPCArt-Studio</h2>
+        <ul>
+            <li><a href="/usuario_dashboard/">Inicio</a></li>
+            <li><a href="/galeria/">Galería</a></li>
+            <li><a href="/subir_imagen/">Subir Imagen</a></li>
+            <li><a href="/editor_imagenes/">Editor de Imágenes</a></li>
+            <li><a href="/ayuda/">Ayuda</a></li>
+            <li><a href="/logout/">Cerrar Sesión</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        <h1>Editor de Imágenes</h1>
+        <div class="grid" id="imageGrid">
+            <!-- Celdas generadas dinámicamente -->
+        </div>
+        <div class="toolbar">
+            <input type="color" id="colorPicker">
+            <button onclick="saveDesign()">Guardar Cambios</button>
+        </div>
+    </div>
+
+    <script>
+        const grid = document.getElementById("imageGrid");
+        const colorPicker = document.getElementById("colorPicker");
+        const design = JSON.parse('{{ design|escapejs }}'); // Asegura que el JSON sea válido
+
+        function renderGrid() {
+            design.forEach((row, rowIndex) => {
+                row.forEach((color, colIndex) => {
+                    const cell = document.createElement("div");
+                    cell.className = "cell";
+                    cell.style.backgroundColor = color;
+                    cell.addEventListener("click", () => {
+                        cell.style.backgroundColor = colorPicker.value;
+                        design[rowIndex][colIndex] = colorPicker.value;
+                    });
+                    grid.appendChild(cell);
+                });
+            });
+        }
+
+        function saveDesign() {
+            fetch("/guardar_diseno/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ design }),
+            }).then(response => {
+                if (response.ok) alert("Diseño guardado exitosamente");
+                else alert("Error al guardar el diseño");
+            });
+        }
+
+        renderGrid();
+    </script>
+</body>
+</html>

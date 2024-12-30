@@ -1,8 +1,17 @@
-from flask import Flask, request, jsonify, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, jsonify
 import os
+import xml.etree.ElementTree as ET
 from utils.xml_utils import leer_xml, escribir_xml, validar_estructura_xml
+import requests
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['PROCESSED_FOLDER'] = os.path.join(os.getcwd(), 'static', 'processed')
+
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(app.config['PROCESSED_FOLDER'], exist_ok=True)
+
+
 
 # Ruta del archivo de usuarios
 ARCHIVO_USUARIOS = "users.xml"
@@ -136,6 +145,114 @@ def ver_estadisticas():
         return jsonify({"error": f"Error al calcular estadísticas: {str(e)}"}), 500
 
 
+
+
+# QuickChart API
+def generar_grafico(pixels):
+    url = "https://quickchart.io/chart"
+    datos = {
+        "chart": {
+            "type": "scatter",
+            "data": {
+                "datasets": [
+                    {
+                        "label": "Pixels",
+                        "data": [{"x": p["col"], "y": p["fila"]} for p in pixels],
+                        "backgroundColor": [p["color"] for p in pixels],
+                        "pointRadius": 5  # Tamaño del punto ajustable
+                    }
+                ]
+            },
+            "options": {
+                "scales": {
+                    "x": {"reverse": False},
+                    "y": {"reverse": True},  # Invertir eje Y para el diseño correcto
+                }
+            },
+        }
+    }
+    try:
+        response = requests.post(url, json=datos)
+        if response.status_code == 200:
+            # Usa app.config para resolver el PROCESSED_FOLDER
+            image_path = os.path.join(app.config['PROCESSED_FOLDER'], 'imagen_generada.png')
+            with open(image_path, 'wb') as f:
+                f.write(response.content)
+            return f'/static/processed/imagen_generada.png'
+        else:
+            print("Error en la API de QuickChart:", response.text)
+            return None
+    except Exception as e:
+        print("Error generando gráfico:", str(e))
+        return None
+
+
+
+
+
+
+# Leer XML y extraer los datos de píxeles
+def procesar_archivo_xml(file_path):
+    try:
+        tree = ET.parse(file_path)
+        root = tree.getroot()
+        pixels = []
+        for pixel in root.findall("./diseño/pixel"):
+            fila = int(pixel.attrib['fila'])
+            col = int(pixel.attrib['col'])
+            color = pixel.text.strip()
+            pixels.append({"fila": fila, "col": col, "color": color})
+        print("Píxeles procesados:", pixels)  # Agrega esta línea
+        return pixels
+    except Exception as e:
+        print("Error procesando el archivo XML:", str(e))
+        return None
+
+from flask import send_from_directory
+
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    return send_from_directory('static', filename)
+
+
+# Ruta para subir imagen
+@app.route('/subir_imagen', methods=['GET', 'POST'])
+def subir_imagen():
+    if request.method == 'POST':
+        file = request.files.get('archivo')
+        if not file or not file.filename.endswith('.xml'):
+            return render_template('subir_imagen.html', error="Debe cargar un archivo XML válido.")
+
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(file_path)
+
+        pixels = procesar_archivo_xml(file_path)
+        if not pixels:
+            return render_template('subir_imagen.html', error="Error procesando el archivo XML.")
+
+        image_path = generar_grafico(pixels)
+        if not image_path:
+            return render_template('subir_imagen.html', error="No se pudo generar la imagen.")
+
+        return render_template('subir_imagen.html', mensaje="Imagen cargada exitosamente.", imagen=image_path)
+
+    return render_template('subir_imagen.html')
+
+# Ruta para galería
+@app.route('/galeria', methods=['GET'])
+def galeria():
+    imagenes = os.listdir(app.config['PROCESSED_FOLDER'])
+    print("Imágenes en la galería:", imagenes)  # Para depuración
+    imagenes = [f'/static/processed/{img}' for img in imagenes if img.endswith(('png', 'jpg', 'jpeg'))]
+    return render_template('galeria.html', imagenes=imagenes)
+
+
+
+
+# Página inicial redirige a la galería
+@app.route('/')
+def index():
+    return redirect(url_for('galeria'))
 
 
 if __name__ == '__main__':
