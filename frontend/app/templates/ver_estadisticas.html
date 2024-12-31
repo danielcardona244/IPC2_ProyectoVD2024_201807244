@@ -14,9 +14,9 @@
             <nav>
                 <ul>
                     <li><a href="{% url 'admin_dashboard' %}">Inicio</a></li>
-                    <li><a href="{% url 'cargar_usuarios' %}">Carga Masiva</a></li>
-                    <li><a href="{% url 'ver_usuarios' %}">Ver Usuarios</a></li>
+                    <li><a href="{% url 'ver_usuarios' %}">Usuarios</a></li>
                     <li><a href="{% url 'ver_xml' %}">Ver XML</a></li>
+                    <li><a href="{% url 'ver_estadisticas' %}">Estadísticas</a></li>
                     <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
                 </ul>
             </nav>
@@ -24,15 +24,14 @@
         <main class="content">
             <h1>Estadísticas</h1>
             {% if error %}
-                <p style="color: red;">{{ error }}</p>
+                <div class="error">
+                    <p>{{ error }}</p>
+                </div>
             {% else %}
-                <p><strong>Total de Usuarios:</strong> {{ total_usuarios }}</p>
-                <h2>Distribución por Perfil</h2>
-                <ul>
-                    {% for perfil, count in estadisticas_perfil.items %}
-                        <li>{{ perfil }}: {{ count }}</li>
-                    {% endfor %}
-                </ul>
+                <h2>Top 3 de usuarios con más imágenes cargadas</h2>
+                <img src="{{ top3_chart_url }}" alt="Top 3 de usuarios">
+                <h2>Imágenes procesadas por usuario</h2>
+                <img src="{{ images_per_user_chart_url }}" alt="Imágenes procesadas">
             {% endif %}
         </main>
     </div>

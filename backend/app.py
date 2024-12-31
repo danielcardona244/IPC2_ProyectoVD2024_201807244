@@ -3,6 +3,9 @@ import os
 import xml.etree.ElementTree as ET
 from utils.xml_utils import leer_xml, validar_estructura_xml, validar_usuarios_xml, escribir_xml, validar_xml_existente
 import requests
+import matplotlib
+matplotlib.use('Agg')  # Usar backend no interactivo
+
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
@@ -204,27 +207,62 @@ def ver_xml():
 #endpoint para ver estadisticas
 @app.route('/admin/verEstadisticas', methods=['GET'])
 def ver_estadisticas():
-    if not os.path.exists(ARCHIVO_USUARIOS):
-        return jsonify({"error": "No hay usuarios registrados"}), 404
-
     try:
+        # Validar si el archivo de usuarios existe
+        if not os.path.exists(ARCHIVO_USUARIOS):
+            return jsonify({"error": "No hay usuarios registrados"}), 404
+
         with open(ARCHIVO_USUARIOS, "r", encoding="utf-8") as archivo:
             contenido = archivo.read()
+
         datos_usuarios = leer_xml(contenido)
         usuarios = datos_usuarios.get("Usuarios", {}).get("Usuario", [])
-
         if not isinstance(usuarios, list):
             usuarios = [usuarios]
 
-        # Generar estadísticas
-        total_usuarios = len(usuarios)
-        perfiles = [u["Perfil"] for u in usuarios]
-        estadisticas_perfil = {perfil: perfiles.count(perfil) for perfil in set(perfiles)}
+        # 1. Leer imágenes procesadas desde la carpeta `static/processed`
+        imagenes_procesadas = os.listdir(app.config['PROCESSED_FOLDER'])
 
-        return jsonify({"total_usuarios": total_usuarios, "estadisticas_perfil": estadisticas_perfil}), 200
+        estadisticas = {}
+        for usuario in usuarios:
+            user_id = usuario.get("ID")
+            estadisticas[user_id] = sum(user_id in img for img in imagenes_procesadas)
+
+        # 2. Calcular Top 3 usuarios con más imágenes cargadas
+        top_usuarios = sorted(estadisticas.items(), key=lambda x: x[1], reverse=True)[:3]
+
+        # 3. Generar gráficos con matplotlib
+        import matplotlib.pyplot as plt
+
+        # Gráfico 1: Top 3 usuarios con más imágenes cargadas
+        usuarios_top = [user[0] for user in top_usuarios]
+        imagenes_top = [user[1] for user in top_usuarios]
+
+        plt.bar(usuarios_top, imagenes_top, color='blue')
+        plt.title("Top 3 Usuarios con Más Imágenes Cargadas")
+        plt.xlabel("Usuarios")
+        plt.ylabel("Cantidad de Imágenes")
+        top_chart_path = os.path.join(app.config['PROCESSED_FOLDER'], "top_usuarios.png")
+        plt.savefig(top_chart_path)
+        plt.clf()
+
+        # Gráfico 2: Cantidad de imágenes procesadas por usuario
+        plt.bar(estadisticas.keys(), estadisticas.values(), color='green')
+        plt.title("Imágenes Procesadas por Usuario")
+        plt.xlabel("Usuarios")
+        plt.ylabel("Cantidad de Imágenes")
+        total_chart_path = os.path.join(app.config['PROCESSED_FOLDER'], "imagenes_procesadas.png")
+        plt.savefig(total_chart_path)
+        plt.clf()
+
+        return jsonify({
+            "mensaje": "Estadísticas generadas correctamente",
+            "top_chart": "/static/processed/top_usuarios.png",
+            "total_chart": "/static/processed/imagenes_procesadas.png"
+        }), 200
+
     except Exception as e:
         return jsonify({"error": f"Error al calcular estadísticas: {str(e)}"}), 500
-
 
 
 

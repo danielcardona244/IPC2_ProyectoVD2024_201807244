@@ -6,6 +6,8 @@ from django.conf import settings
 import requests
 import json
 
+import matplotlib.pyplot as plt
+
 
 FLASK_BACKEND_URL = 'http://127.0.0.1:5000'
 
@@ -137,19 +139,51 @@ def ver_estadisticas(request):
             data = response.json()
             total_usuarios = data.get("total_usuarios", 0)
             estadisticas_perfil = data.get("estadisticas_perfil", {})
-            return render(request, 'ver_estadisticas.html', {
+            usuarios = data.get("usuarios", [])
+
+            # Generar el gráfico de Top 3 usuarios con más imágenes cargadas
+            usuarios_top3 = sorted(usuarios, key=lambda x: x.get("imagenes_cargadas", 0), reverse=True)[:3]
+            nombres_top3 = [u['nombre'] for u in usuarios_top3]
+            imagenes_top3 = [u['imagenes_cargadas'] for u in usuarios_top3]
+
+            plt.bar(nombres_top3, imagenes_top3)
+            plt.title("Top 3 usuarios con más imágenes cargadas")
+            plt.ylabel("Imágenes cargadas")
+            plt.xlabel("Usuarios")
+
+            chart_path = os.path.join(settings.BASE_DIR, 'frontend', 'static', 'charts')
+            os.makedirs(chart_path, exist_ok=True)
+
+            top3_chart_file = os.path.join(chart_path, 'top3_users.png')
+            plt.savefig(top3_chart_file)
+            plt.clf()
+
+            # Generar el gráfico de imágenes procesadas por usuario
+            nombres = [u['nombre'] for u in usuarios]
+            imagenes = [u['imagenes_procesadas'] for u in usuarios]
+
+            plt.bar(nombres, imagenes)
+            plt.title("Imágenes procesadas por usuario")
+            plt.ylabel("Imágenes procesadas")
+            plt.xlabel("Usuarios")
+
+            images_per_user_chart_file = os.path.join(chart_path, 'images_per_user.png')
+            plt.savefig(images_per_user_chart_file)
+            plt.clf()
+
+            # Pasar las rutas de las imágenes al contexto
+            context = {
+                'top3_chart_url': '/static/charts/top3_users.png',
+                'images_per_user_chart_url': '/static/charts/images_per_user.png',
                 'total_usuarios': total_usuarios,
-                'estadisticas_perfil': estadisticas_perfil
-            })
+                'estadisticas_perfil': estadisticas_perfil,
+            }
+            return render(request, 'ver_estadisticas.html', context)
         else:
             error = response.json().get('error', 'Error desconocido.')
             return render(request, 'ver_estadisticas.html', {'error': error})
     except Exception as e:
         return render(request, 'ver_estadisticas.html', {'error': f"Error al comunicarse con el backend: {str(e)}"})
-
-
-
-
 
 
 # Dashboard del usuario
