@@ -1,11 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Usuarios>
-    <Usuario>
-        <ID>1</ID>
-        <Pwd>password123</Pwd>
-        <Nombre>Juan Pérez</Nombre>
-        <Correo>juan.perez@example.com</Correo>
-        <Telefono>1234567890</Telefono>
-        <Direccion>Calle Falsa 123</Direccion>
-        <Perfil>Administrador</Perfil>
-    </Usuario>
+	<Usuario>
+		<ID>IPC-000</ID>
+		<Pwd>1417</Pwd>
+		<Nombre>Carlos Ruiz</Nombre>
+		<Correo>carlosruiz@example.com</Correo>
+		<Telefono>30306453</Telefono>
+		<Direccion>Ciudad de Guatemala, Guatemala</Direccion>
+		<Perfil>https://fastly.picsum.photos/id/102/200/200.jpg?hmac=mLVQr0-wbZ-PRSf_R4oFkUDR7yfIKqT3F8pfJNFZKc0</Perfil>
+	</Usuario>
+
 </Usuarios>

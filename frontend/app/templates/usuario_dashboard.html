@@ -1,13 +1,30 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Usuario</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <body>
-    <h1>Bienvenido al Dashboard de Usuario</h1>
-    <p>{{ mensaje }}</p>
-    <a href="{% url 'logout' %}">Cerrar Sesión</a>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>IPCArt-Studio</h2>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'galeria' %}">Galería</a></li>
+                    <li><a href="{% url 'subir_imagen' %}">Subir Imagen</a></li>
+                    <li><a href="{% url 'editor_imagenes' %}">Editor de Imágenes</a></li>
+                    <li><a href="{% url 'ayuda' %}">ayuda</a></li>
+                    <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="content">
+            <h1>Bienvenido al Dashboard de Usuario</h1>
+            <p>Selecciona una opción en el menú para continuar.</p>
+        </main>
+    </div>
 </body>
 </html>
